@@ -16,7 +16,6 @@ class EditStudentActivity : AppCompatActivity() {
         val toolbar: Toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)
 
-        // Retrieve the passed data
         val student = intent.getSerializableExtra("student") as? StudentModel
         val position = intent.getIntExtra("position", -1)
 
@@ -25,7 +24,6 @@ class EditStudentActivity : AppCompatActivity() {
         val saveButton: Button = findViewById(R.id.btn_save_student)
 
         if (student != null && position != -1) {
-            // Pre-fill fields with the student's data
             studentNameEditText.setText(student.studentName)
             studentIdEditText.setText(student.studentId)
 
@@ -43,7 +41,6 @@ class EditStudentActivity : AppCompatActivity() {
                 }
             }
         } else {
-            // Handle error gracefully
             finish()
         }
     }

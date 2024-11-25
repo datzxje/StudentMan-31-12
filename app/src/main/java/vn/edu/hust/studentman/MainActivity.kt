@@ -47,30 +47,24 @@ class MainActivity : AppCompatActivity() {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.activity_main)
 
-    // Thiết lập toolbar
     val toolbar: Toolbar = findViewById(R.id.toolbar)
     setSupportActionBar(toolbar)
 
-    // Thiết lập ListView
     listView = findViewById(R.id.list_view_students)
     studentAdapter = StudentAdapter(this, students)
     listView.adapter = studentAdapter
 
-    // Đăng ký context menu cho ListView
     registerForContextMenu(listView)
   }
 
-  // Tạo OptionMenu
   override fun onCreateOptionsMenu(menu: Menu?): Boolean {
     menuInflater.inflate(R.menu.main_menu, menu)
     return true
   }
 
-  // Xử lý khi chọn mục trong OptionMenu
   override fun onOptionsItemSelected(item: MenuItem): Boolean {
     return when (item.itemId) {
       R.id.menu_add -> {
-        // Mở Activity để thêm sinh viên mới
         val intent = Intent(this, AddStudentActivity::class.java)
         startActivityForResult(intent, REQUEST_ADD_STUDENT)
         true
@@ -79,7 +73,6 @@ class MainActivity : AppCompatActivity() {
     }
   }
 
-  // Tạo ContextMenu cho từng mục trong ListView
   override fun onCreateContextMenu(
     menu: ContextMenu?,
     v: View?,
@@ -89,14 +82,12 @@ class MainActivity : AppCompatActivity() {
     menuInflater.inflate(R.menu.context_menu, menu)
   }
 
-  // Xử lý khi chọn mục trong ContextMenu
   override fun onContextItemSelected(item: MenuItem): Boolean {
     val info = item.menuInfo as AdapterView.AdapterContextMenuInfo
     val selectedStudent = students[info.position]
 
     return when (item.itemId) {
       R.id.menu_edit -> {
-        // Pass selected student and its position to the EditStudentActivity
         val intent = Intent(this, EditStudentActivity::class.java)
         intent.putExtra("student", selectedStudent)
         intent.putExtra("position", info.position)
@@ -114,7 +105,7 @@ class MainActivity : AppCompatActivity() {
   }
 
 
-  // Xử lý kết quả trả về từ các Activity
+  @Deprecated("")
   override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
     super.onActivityResult(requestCode, resultCode, data)
     if (resultCode == RESULT_OK && data != null) {
