@@ -1,3 +1,5 @@
 package vn.edu.hust.studentman
 
-data class StudentModel(val studentName: String, val studentId: String)
+import java.io.Serializable
+
+data class StudentModel(var studentName: String, var studentId: String): Serializable
