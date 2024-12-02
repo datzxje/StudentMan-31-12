@@ -4,24 +4,24 @@ import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
+import android.widget.BaseAdapter
 import android.widget.TextView
 
-class StudentAdapter(context: Context, private val students: List<StudentModel>) :
-  ArrayAdapter<StudentModel>(context, R.layout.layout_student_item, students) {
+class StudentAdapter(private val context: Context, private val students: List<StudentModel>) : BaseAdapter() {
 
-  override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-    val view: View = convertView ?: LayoutInflater.from(context)
-      .inflate(R.layout.layout_student_item, parent, false)
+  override fun getCount(): Int = students.size
 
+  override fun getItem(position: Int): Any = students[position]
+
+  override fun getItemId(position: Int): Long = position.toLong()
+
+  override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
+    val view: View = convertView ?: LayoutInflater.from(context).inflate(R.layout.layout_student_item, parent, false)
     val student = students[position]
-
-    val studentNameTextView: TextView = view.findViewById(R.id.text_student_name)
-    val studentIdTextView: TextView = view.findViewById(R.id.text_student_id)
-
-    studentNameTextView.text = student.studentName
-    studentIdTextView.text = student.studentId
-
+    val nameTextView: TextView = view.findViewById(R.id.text_student_name)
+    val idTextView: TextView = view.findViewById(R.id.text_student_id)
+    nameTextView.text = student.studentName
+    idTextView.text = student.studentId
     return view
   }
 }
