@@ -9,10 +9,12 @@ import android.widget.EditText
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import vn.edu.hust.studentman.R
+import vn.edu.hust.studentman.StudentDatabaseHelper
 import vn.edu.hust.studentman.StudentModel
 
 class AddEditStudentFragment : Fragment() {
 
+    private lateinit var dbHelper: StudentDatabaseHelper
     private lateinit var editTextName: EditText
     private lateinit var editTextId: EditText
     private lateinit var buttonSave: Button
@@ -23,6 +25,7 @@ class AddEditStudentFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.fragment_add_edit_student, container, false)
+        dbHelper = StudentDatabaseHelper(requireContext())
         editTextName = view.findViewById(R.id.edit_text_name)
         editTextId = view.findViewById(R.id.edit_text_id)
         buttonSave = view.findViewById(R.id.button_save)
@@ -38,17 +41,12 @@ class AddEditStudentFragment : Fragment() {
             val id = editTextId.text.toString()
             if (student == null) {
                 // Add new student
-                val newStudent = StudentModel(name, id)
-                // Pass the new student back to StudentListFragment
-                findNavController().previousBackStackEntry?.savedStateHandle?.set("newStudent", newStudent)
+                dbHelper.insertStudent(id, name)
             } else {
                 // Edit existing student
-                student?.studentName = name
-                student?.studentId = id
-                // Pass the edited student back to StudentListFragment
-                findNavController().previousBackStackEntry?.savedStateHandle?.set("editedStudent", student)
+                dbHelper.updateStudent(id, name)
             }
-            findNavController().popBackStack()
+            findNavController().navigateUp()
         }
 
         return view
