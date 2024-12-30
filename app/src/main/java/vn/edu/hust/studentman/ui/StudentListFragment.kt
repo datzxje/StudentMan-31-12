@@ -1,23 +1,24 @@
 package vn.edu.hust.studentman.ui
 
-import android.content.ContentValues
 import android.os.Bundle
 import android.view.*
 import android.widget.AdapterView
 import android.widget.ListView
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.launch
 import vn.edu.hust.studentman.R
 import vn.edu.hust.studentman.StudentAdapter
-import vn.edu.hust.studentman.StudentDatabaseHelper
-import vn.edu.hust.studentman.StudentModel
+import vn.edu.hust.studentman.StudentDatabase
+import vn.edu.hust.studentman.StudentEntity
 
 class StudentListFragment : Fragment() {
 
     private lateinit var studentListView: ListView
     private lateinit var studentAdapter: StudentAdapter
-    private lateinit var dbHelper: StudentDatabaseHelper
+    private lateinit var studentDatabase: StudentDatabase
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -25,16 +26,16 @@ class StudentListFragment : Fragment() {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_list_students, container, false)
         studentListView = view.findViewById(R.id.list_view_students)
-        dbHelper = StudentDatabaseHelper(requireContext())
-        val db = dbHelper.readableDatabase
-        val cursor = db.query(
-            StudentDatabaseHelper.TABLE_NAME,
-            null, null, null, null, null, null
-        )
-        studentAdapter = StudentAdapter(requireContext(), cursor)
+        studentDatabase = StudentDatabase.getDatabase(requireContext())
+        studentAdapter = StudentAdapter(requireContext(), listOf())
         studentListView.adapter = studentAdapter
         registerForContextMenu(studentListView)
         setHasOptionsMenu(true)
+
+        lifecycleScope.launch {
+            val students = studentDatabase.studentDao().getAllStudents()
+            studentAdapter.updateStudents(students)
+        }
 
         return view
     }
@@ -55,12 +56,10 @@ class StudentListFragment : Fragment() {
     }
 
     private fun updateStudentList() {
-        val db = dbHelper.readableDatabase
-        val cursor = db.query(
-            StudentDatabaseHelper.TABLE_NAME,
-            null, null, null, null, null, null
-        )
-        studentAdapter.updateCursor(cursor)
+        lifecycleScope.launch {
+            val students = studentDatabase.studentDao().getAllStudents()
+            studentAdapter.updateStudents(students)
+        }
     }
 
     override fun onCreateContextMenu(menu: ContextMenu, v: View, menuInfo: ContextMenu.ContextMenuInfo?) {
@@ -73,27 +72,27 @@ class StudentListFragment : Fragment() {
         val info = item.menuInfo as AdapterView.AdapterContextMenuInfo
         return when (item.itemId) {
             R.id.action_edit -> {
-                val selectedStudent = studentAdapter.getItem(info.position) as StudentModel
+                val selectedStudent = studentAdapter.getItem(info.position) as StudentEntity
                 val bundle = Bundle().apply {
-                    putSerializable("student", selectedStudent)
+                    putString("studentId", selectedStudent.id)
+                    putString("studentName", selectedStudent.name)
                 }
                 findNavController().navigate(R.id.action_studentListFragment_to_addEditStudentFragment, bundle)
                 true
             }
             R.id.action_remove -> {
-                val db = dbHelper.writableDatabase
-                val student = studentAdapter.getItem(info.position) as StudentModel
-                db.delete(StudentDatabaseHelper.TABLE_NAME, "${StudentDatabaseHelper.COLUMN_ID}=?", arrayOf(student.studentId))
-                updateStudentList()
+                val student = studentAdapter.getItem(info.position) as StudentEntity
+                lifecycleScope.launch {
+                    studentDatabase.studentDao().deleteStudent(student)
+                    updateStudentList()
+                }
 
                 Snackbar.make(requireView(), "Đã xóa sinh viên", Snackbar.LENGTH_LONG)
                     .setAction("Undo") {
-                        val values = ContentValues().apply {
-                            put(StudentDatabaseHelper.COLUMN_ID, student.studentId)
-                            put(StudentDatabaseHelper.COLUMN_NAME, student.studentName)
+                        lifecycleScope.launch {
+                            studentDatabase.studentDao().insertStudent(student)
+                            updateStudentList()
                         }
-                        db.insert(StudentDatabaseHelper.TABLE_NAME, null, values)
-                        updateStudentList()
                     }.show()
                 true
             }
